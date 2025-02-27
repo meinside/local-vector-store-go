@@ -1,7 +1,10 @@
+// sqlite_test.go
+
 package lvs
 
 import (
 	"log"
+	"os"
 	"testing"
 )
 
@@ -9,10 +12,13 @@ const (
 	testDBPath = `./test.db`
 )
 
-// TestClient tests the client's overall functionalities.
-//
-// https://github.com/asg017/sqlite-vec#sample-usage
-func TestClient(t *testing.T) {
+// TestSQLite tests the SQLite database.
+func TestSQLite(t *testing.T) {
+	log.Printf("> testing sqlite database...")
+
+	// remove test db before testing
+	_ = os.Remove(testDBPath)
+
 	if client, err := New(testDBPath); err != nil {
 		t.Fatalf("failed to create client: %s", err)
 	} else {
@@ -25,6 +31,8 @@ func TestClient(t *testing.T) {
 			if _, err := client.Execute(`create virtual table vec_examples using vec0(sample_embedding float[8])`); err != nil {
 				t.Fatalf("failed to create virtual table: %s", err)
 			} else {
+				log.Printf("created virtual table using vec0")
+
 				// batch-insert
 				if res, err := client.Execute(`insert into vec_examples(rowid, sample_embedding)
 					values
@@ -37,15 +45,17 @@ func TestClient(t *testing.T) {
 					if rowsAffected != 3 {
 						t.Fatalf("expected 3 rows affected, got %d", rowsAffected)
 					}
+					log.Printf("inserted 3 vectors")
 
 					// insert a row
-					if res, err := client.Execute(`insert into vec_examples(sample_embedding) values (?)`, FloatsToBytes([]float32{-0.710, 0.330, 0.656, 0.041, -0.990, 0.726, 0.385, -0.958})); err != nil {
+					if res, err := client.Execute(`insert into vec_examples(sample_embedding) values (?)`, FloatsToSQLiteQueryArg([]float32{-0.710, 0.330, 0.656, 0.041, -0.990, 0.726, 0.385, -0.958})); err != nil {
 						t.Fatalf("failed to insert a vector: %s", err)
 					} else {
 						rowsAffected, _ := res.RowsAffected()
 						if rowsAffected != 1 {
 							t.Fatalf("expected 1 row affected, got %d", rowsAffected)
 						}
+						log.Printf("inserted a vector")
 					}
 
 					// select
@@ -62,7 +72,7 @@ func TestClient(t *testing.T) {
 							if err := rows.Scan(&rowid, &distance); err != nil {
 								t.Fatalf("failed to scan row: %s", err)
 							} else {
-								log.Printf("rowid: %d, distance: %f", rowid, distance)
+								log.Printf("iterating row: rowid = %d, distance = %f", rowid, distance)
 							}
 						}
 					}
@@ -73,12 +83,14 @@ func TestClient(t *testing.T) {
 					if _, err := client.Execute("drop table vec_examples"); err != nil {
 						t.Fatalf("failed to drop table: %s", err)
 					}
+					log.Printf("dropped table")
 				}
 			}
 
 			if err := client.Close(); err != nil {
-				t.Fatalf("failed to close client: %s", err)
+				t.Fatalf("failed to close sqlite database: %s", err)
 			}
+			log.Printf("closed sqlite database")
 		}
 	}
 }
