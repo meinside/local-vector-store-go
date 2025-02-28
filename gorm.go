@@ -32,7 +32,7 @@ func (d *GormDB) Close() error {
 	return nil
 }
 
-// NewGormDB creates a new gorm database client.
+// NewGormDB creates a new GORM database client.
 func NewGormDB(path string) (*GormDB, error) {
 	sv.Auto()
 
