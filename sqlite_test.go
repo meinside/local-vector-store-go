@@ -19,7 +19,7 @@ func TestSQLite(t *testing.T) {
 	// remove test db before testing
 	_ = os.Remove(testDBPath)
 
-	if client, err := New(testDBPath); err != nil {
+	if client, err := NewSQLiteDB(testDBPath); err != nil {
 		t.Fatalf("failed to create client: %s", err)
 	} else {
 		if version, err := client.Version(); err != nil {

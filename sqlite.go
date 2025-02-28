@@ -17,8 +17,8 @@ type SQLiteDB struct {
 	db *sql.DB
 }
 
-// New creates a new client.
-func New(path string) (*SQLiteDB, error) {
+// NewSQLiteDB creates a new client for SQLite.
+func NewSQLiteDB(path string) (*SQLiteDB, error) {
 	sv.Auto()
 
 	db, err := sql.Open("sqlite3", path)
